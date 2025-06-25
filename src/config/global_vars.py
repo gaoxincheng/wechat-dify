@@ -1,5 +1,6 @@
 from cachetools import LRUCache
 import threading
+from src.common.logger_handler import logger
 
 # 缓存用户最近会话
 # 创建一个线程安全的 LRU 缓存，最大容量为 500
@@ -16,12 +17,12 @@ def get_conversation_id_lru(openid, conversation_id):
     """
     with lru_lock:
         if openid in lru_cache:
-            print(f"从 LRU 缓存中获取用户 {openid} 的信息")
+            logger.info(f"从 LRU 缓存中获取用户 {openid} 的信息")
             return lru_cache[openid]
         else:
             if len(conversation_id) != 0:
                 lru_cache[openid] = conversation_id
-                print(f"第一次缓存 {openid} {conversation_id} 的信息")
+                logger.info(f"第一次缓存 {openid} {conversation_id} 的信息")
             return ""
 
 

@@ -13,6 +13,7 @@ from src.handler.handle import wechat_msg_reply
 from src.handler.handle import handle_message
 from src.handler.handle import handle_group_message
 from src.handler.handle import async_http_request
+from src.common.logger_handler import logger
 import asyncio
 
 CHECK_INTERVAL = 1  # 轮询间隔（秒）
@@ -29,7 +30,8 @@ async def poll_messages(wx) -> None:
             msgs = wx.GetListenMessage()
             for chat in msgs:
                 who = chat.who
-                print(f"监听到来自 {who} 的消息")
+                logger.info(f"监听到来自 {who} 的消息")
+                logger.info(f"监听到来自 {who} 的消息")
 
                 if who in TARGET_FRIENDS:
                     one_msgs = msgs.get(chat)  # 获取消息内容
@@ -50,16 +52,16 @@ async def poll_messages(wx) -> None:
             # 等待下一次轮询
             await asyncio.sleep(CHECK_INTERVAL)
         except Exception as e:
-            print(f"轮询异常：{str(e)}")
+            logger.info(f"轮询异常：{str(e)}")
             await asyncio.sleep(5)  # 出错后延长等待时间
 
 
 def main():
-    print("Hello from wechat-dify!")
+    logger.info("Hello from wechat-dify!")
     # 获取微信窗口对象
     wx = WeChat()
     # 输出 > 初始化成功，获取到已登录窗口：xxxx
-    print(wx.VERSION)
+    logger.info(wx.VERSION)
     # 设置监听列表
     # 循环添加监听对象
     for i in TARGET_FRIENDS:
@@ -76,7 +78,7 @@ def main():
             for msg in one_msgs:
                 msgtype = msg.type  # 获取消息类型
                 content = msg.content  # 获取消息内容，字符串类型的消息内容
-                print(f"【{who}】：{content}")
+                logger.info(f"【{who}】：{content}")
 
                 if msgtype == "friend":
                     wechat_msg_reply(msg, chat)  # 回复收到
@@ -87,25 +89,25 @@ async def main_async() -> None:
     """主函数：初始化并启动轮询"""
     wx = WeChat()
 
-    print(f"微信消息轮询监听已启动")
-    print(f"目标好友：{TARGET_FRIENDS}")
-    print(f"目标群：{TARGET_GROUPS}")
+    logger.info(f"微信消息轮询监听已启动")
+    logger.info(f"目标好友：{TARGET_FRIENDS}")
+    logger.info(f"目标群：{TARGET_GROUPS}")
     # 预先打开一次聊天窗口（可选）
     for friend in TARGET_FRIENDS:
         try:
             wx.AddListenChat(who=friend, savepic=True)
             wx.ChatWith(friend)
-            print(f"已打开 {friend} 的聊天窗口")
+            logger.info(f"已打开 {friend} 的聊天窗口")
         except Exception as e:
-            print(f"打开 {friend} 聊天窗口失败：{str(e)}")
+            logger.info(f"打开 {friend} 聊天窗口失败：{str(e)}")
 
     for group in TARGET_GROUPS:
         try:
             wx.AddListenChat(who=group)
             wx.ChatWith(group)
-            print(f"已打开 {group} 的群聊天窗口")
+            logger.info(f"已打开 {group} 的群聊天窗口")
         except Exception as e:
-            print(f"打开 {group} 群聊天窗口失败：{str(e)}")
+            logger.info(f"打开 {group} 群聊天窗口失败：{str(e)}")
     # 启动轮询任务
     await poll_messages(wx)
 
@@ -113,12 +115,12 @@ async def main_async() -> None:
 if __name__ == "__main__":
 
     # 确保微信已登录
-    print("请确保微信已登录并处于活动状态...")
+    logger.info("请确保微信已登录并处于活动状态...")
     time.sleep(3)  # 等待3秒，给用户时间切换到微信
 
     # 启动异步事件循环
     try:
         asyncio.run(main_async())
     except KeyboardInterrupt:
-        print("\n程序已停止")
+        logger.info("\n程序已停止")
     # main()
