@@ -8,7 +8,7 @@ logger.setLevel(logging.DEBUG)  # 设置最低日志级别为 DEBUG
 stream_handler = logging.StreamHandler()
 
 # 创建 Formatter，定义日志消息的格式
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+formatter = logging.Formatter("%(asctime)s[%(thread)d][%(levelname)s] - %(message)s")
 
 # 将 Formatter 添加到 Handler
 stream_handler.setFormatter(formatter)

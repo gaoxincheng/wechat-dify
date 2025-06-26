@@ -31,7 +31,6 @@ async def poll_messages(wx) -> None:
             for chat in msgs:
                 who = chat.who
                 logger.info(f"监听到来自 {who} 的消息")
-                logger.info(f"监听到来自 {who} 的消息")
 
                 if who in TARGET_FRIENDS:
                     one_msgs = msgs.get(chat)  # 获取消息内容
@@ -65,7 +64,7 @@ def main():
     # 设置监听列表
     # 循环添加监听对象
     for i in TARGET_FRIENDS:
-        wx.AddListenChat(who=i, savepic=True)
+        wx.AddListenChat(who=i, savepic=False)
 
     # 持续监听消息，并且收到消息后回复“收到”
     wait = 1  # 设置1秒查看一次是否有新消息
@@ -95,7 +94,7 @@ async def main_async() -> None:
     # 预先打开一次聊天窗口（可选）
     for friend in TARGET_FRIENDS:
         try:
-            wx.AddListenChat(who=friend, savepic=True)
+            wx.AddListenChat(who=friend, savepic=False)
             wx.ChatWith(friend)
             logger.info(f"已打开 {friend} 的聊天窗口")
         except Exception as e:
