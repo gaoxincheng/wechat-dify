@@ -1,4 +1,6 @@
 from cachetools import LRUCache
+from cachetools import TLRUCache
+
 import threading
 from src.common.logger_handler import logger
 
@@ -9,21 +11,28 @@ lru_cache = LRUCache(maxsize=500)
 lru_lock = threading.Lock()
 
 
-def get_conversation_id_lru(openid, conversation_id):
+def get_conversation_id_lru(key_id, conversation_id):
     """
     该函数使用 LRU 缓存获取用户信息
     :param user_id: 用户 ID
     :return: 用户信息
     """
     with lru_lock:
-        if openid in lru_cache:
-            logger.info(f"从 LRU 缓存中获取用户 {openid} 的信息")
-            return lru_cache[openid]
+        if key_id in lru_cache:
+            logger.info(f"从 LRU 缓存中获取用户 {key_id} 的信息")
+            return lru_cache[key_id]
         else:
             if len(conversation_id) != 0:
-                lru_cache[openid] = conversation_id
-                logger.info(f"第一次缓存 {openid} {conversation_id} 的信息")
+                lru_cache[key_id] = conversation_id
+                logger.info(f"第一次缓存 {key_id} {conversation_id} 的信息")
             return ""
+
+
+def del_conversation_id_lru(key_id):
+    with lru_lock:
+        if key_id in lru_cache:
+            logger.info(f"从 LRU 缓存中删除用户 {key_id} 的信息")
+            del lru_cache[key_id]
 
 
 class GlobalVars:
@@ -34,7 +43,7 @@ class GlobalVars:
             cls._instance = super().__new__(cls)
             # Dify 相关配置;
             cls._instance.dify_api_url = "http://172.20.22.43/v1"
-            cls._instance.dify_api_token = ""
+            cls._instance.dify_api_token = "app-iZRWkNMmWaAdoBTehffXRSWp"
         return cls._instance
 
     def get_dify_api_url(self):

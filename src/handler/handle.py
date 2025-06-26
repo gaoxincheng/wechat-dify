@@ -8,8 +8,11 @@ import re
 from wxauto import WeChat
 import aiohttp
 import time
-from src.config.global_vars import GlobalVars
-from src.config.global_vars import get_conversation_id_lru
+from src.config.global_vars import (
+    GlobalVars,
+    del_conversation_id_lru,
+    get_conversation_id_lru,
+)
 from src.common.logger_handler import logger
 
 
@@ -51,6 +54,10 @@ def request_dify_chat(open_id, from_user_name, question):
             logger.info(f"请求dify_chat成功 : {data},{datetime.datetime.now()}")
             get_conversation_id_lru(open_id, data["conversation_id"])
             return remove_tags_regex(data["answer"], ["think", "details"])
+        elif response.status_code == 404:
+            logger.info(f"请求失败，状态码: {response.status_code}")
+            del_conversation_id_lru(open_id)
+            return f"请求失败，状态码: {response.status_code}"
         else:
             logger.info(f"请求失败，状态码: {response.status_code}")
             return f"请求失败，状态码: {response.status_code}"
@@ -90,12 +97,17 @@ async def async_http_request(conversation_id, from_user_name, question):
                     logger.info(f"请求dify_chat成功 : {data},{datetime.datetime.now()}")
                     get_conversation_id_lru(conversation_id, data["conversation_id"])
                     return remove_tags_regex(data["answer"], ["think", "details"])
+                elif response.status == 404:
+                    logger.info(
+                        f"请求失败,请稍后再试，状态码: {response.status},{response.reason}"
+                    )
+                    del_conversation_id_lru(conversation_id)
+                    return f"请求失败,请稍后再试，状态码: {response.status}，msg: {response.reason}"
                 else:
                     logger.info(
-                        f"请求失败，状态码: {response.status},{response.reason}"
+                        f"请求失败,请稍后再试，状态码: {response.status},{response.reason}"
                     )
-                    return f"请求失败，状态码: {response.status}"
-            # return await response.text()
+                    return f"请求失败,请稍后再试，状态码: {response.status}，msg: {response.reason}"
         except Exception as e:
             logger.info(f"HTTP请求失败: {str(e)}")
             return "网络请求失败，请稍后再试"
