@@ -94,7 +94,7 @@ async def async_http_request(conversation_id, from_user_name, question):
             async with session.post(url, json=data) as response:
                 if response.status == 200:
                     data = await response.json()
-                    logger.info(f"请求dify_chat成功 : {data},{datetime.datetime.now()}")
+                    logger.info(f"请求dify_chat成功 : {datetime.datetime.now()}")
                     get_conversation_id_lru(conversation_id, data["conversation_id"])
                     return remove_tags_regex(data["answer"], ["think", "details"])
                 elif response.status == 404:
