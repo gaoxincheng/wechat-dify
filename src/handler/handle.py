@@ -148,7 +148,7 @@ async def handle_group_message(group, sender, content, chat, self_nickname):
     try:
         # msg.quote(reply_message)
         chat.SendMsg(msg=f" {response_text.strip()}", at=sender)
-        logger.info(f"已回复[{sender}]: {response_text.strip()}")
+        logger.info(f"已回复[{sender}]")
     except Exception as e:
         logger.info(f"回复群消息失败: {str(e)}")
 
