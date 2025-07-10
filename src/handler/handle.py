@@ -8,6 +8,7 @@ import re
 from wxauto import WeChat
 import aiohttp
 import time
+
 from src.config.global_vars import (
     GlobalVars,
     del_conversation_id_lru,
@@ -30,45 +31,6 @@ def remove_at_info(text):
     # 匹配@后面跟随任意非空白字符（直到遇到空格或结束）
     pattern = r"@\S+\s?"
     return re.sub(pattern, "", text).strip()
-
-
-def request_dify_chat(open_id, from_user_name, question):
-    url = f"{GlobalVars().get_dify_api_url()}/chat-messages"
-    headers = {
-        "Authorization": f"Bearer {GlobalVars().get_dify_api_token()}",
-        "Content-Type": "application/json",
-    }
-    data = {
-        "inputs": {},
-        "query": f"{question}",
-        "response_mode": "blocking",
-        "conversation_id": f"{get_conversation_id_lru(open_id,'')}",
-        "user": f"{from_user_name}",
-    }
-    try:
-        logger.info(f"dify_chat url : {url}")
-        response = requests.post(url, json=data, headers=headers)
-        # logger.info(f"dify_chat response : {response.text}")
-        if response.status_code == 200:
-            data = response.json()
-            logger.info(f"请求dify_chat成功 : {data},{datetime.datetime.now()}")
-            get_conversation_id_lru(open_id, data["conversation_id"])
-            return remove_tags_regex(data["answer"], ["think", "details"])
-        elif response.status_code == 404:
-            logger.info(f"请求失败，状态码: {response.status_code}")
-            del_conversation_id_lru(open_id)
-            return f"请求失败，状态码: {response.status_code}"
-        else:
-            logger.info(f"请求失败，状态码: {response.status_code}")
-            return f"请求失败，状态码: {response.status_code}"
-    except requests.RequestException as e:
-        logger.info(f"请求发生错误: {e}")
-        return f"请求发生错误: {e}"
-
-
-def wechat_msg_reply(msg, chat):
-    response = request_dify_chat(msg.sender, msg.sender, msg.content)
-    chat.SendMsg(response)
 
 
 async def async_http_request(conversation_id, from_user_name, question):
@@ -113,7 +75,7 @@ async def async_http_request(conversation_id, from_user_name, question):
             return "网络请求失败，请稍后再试"
 
 
-async def handle_message(sender, content, chat):
+async def handle_message(sender, content, wx: WeChat):
     """异步消息处理函数"""
     # sender = chat.who
     # content = msg.content
@@ -125,13 +87,13 @@ async def handle_message(sender, content, chat):
     # 异步回复消息（确保在wxauto允许的线程中执行）
     try:
         # msg.quote(reply_message)
-        chat.SendMsg(response_text.strip())
+        wx.SendMsg(msg=response_text.strip(), who=sender)
         logger.info(f"已回复[{sender}]: {response_text.strip()}")
     except Exception as e:
         logger.info(f"回复好友消息失败: {str(e)}")
 
 
-async def handle_group_message(group, sender, content, chat, self_nickname):
+async def handle_group_message(group, sender, content, wx: WeChat, self_nickname):
     """异步消息处理函数"""
     # sender = chat.who
     # content = msg.content
@@ -147,7 +109,7 @@ async def handle_group_message(group, sender, content, chat, self_nickname):
     # 异步回复消息（确保在wxauto允许的线程中执行）
     try:
         # msg.quote(reply_message)
-        chat.SendMsg(msg=f" {response_text.strip()}", at=sender)
+        wx.SendMsg(msg=f" {response_text.strip()}", who=group, at=sender)
         logger.info(f"已回复[{sender}]")
     except Exception as e:
         logger.info(f"回复群消息失败: {str(e)}")

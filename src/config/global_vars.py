@@ -44,6 +44,8 @@ class GlobalVars:
             # Dify 相关配置;
             cls._instance.dify_api_url = "http://172.20.22.43/v1"
             cls._instance.dify_api_token = "app-iZRWkNMmWaAdoBTehffXRSWp"
+            # 群中@昵称
+            cls._instance._self_nickname = "高新成"
         return cls._instance
 
     def get_dify_api_url(self):
@@ -51,3 +53,6 @@ class GlobalVars:
 
     def get_dify_api_token(self):
         return self.dify_api_token
+
+    def get_self_nickname(self):
+        return self._self_nickname
