@@ -126,16 +126,6 @@ class WXHandle:
                 "conversation_id": f"{get_conversation_id_lru(chat.who,'')}",
                 "user": chat.who,
             }
-            self._http_manager.submit_request(
-                HTTPRequest(
-                    "POST",
-                    f"{GlobalVars().get_dify_api_url()}/chat-messages",
-                    json=data,
-                    headers=headers,
-                ),
-                session_name=chat.who,
-                sender=msg.sender,
-            )
         else:
             if f"@{GlobalVars().get_self_nickname()}" not in msg.content:
                 logger.info(f"非@{GlobalVars().get_self_nickname()} 的群消息不处理")
@@ -147,17 +137,18 @@ class WXHandle:
                 "conversation_id": f"{get_conversation_id_lru(f"{chat.who}.{msg.sender}",'')}",
                 "user": msg.sender,
             }
-            self._http_manager.submit_request(
-                HTTPRequest(
-                    "POST",
-                    f"{GlobalVars().get_dify_api_url()}/chat-messages",
-                    json=data,
-                    headers=headers,
-                ),
-                session_name=chat.who,
-                sender=msg.sender,
-            )
-        logger.info(f"消息已投递 {chat.who}：{msg.content}")
+        request = HTTPRequest(
+            "POST",
+            f"{GlobalVars().get_dify_api_url()}/chat-messages",
+            json=data,
+            headers=headers,
+        )
+        self._http_manager.submit_request(
+            request=request,
+            session_name=chat.who,
+            sender=msg.sender,
+        )
+        logger.info(f"消息已投递 {request.request_id}")
 
     def close_session(self, session_name) -> bool:
         try:

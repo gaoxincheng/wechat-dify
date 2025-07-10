@@ -59,6 +59,7 @@ class HTTPRequestHandler:
 
     def process(self, request: HTTPRequest) -> HTTPResponse:
         try:
+            logger.info(f"开始Dify请求: {request.request_id}")
             response = requests.request(
                 method=request.method,
                 url=request.url,
@@ -120,6 +121,7 @@ class HTTPRequestManager:
     ) -> None:
         """处理请求结果并放入响应队列"""
         try:
+            logger.info(f"完成Dify请求: {request_id}")
             response = future.result()
             self.response_queue.put(QueueMsg(response, session_name, sender))
         except Exception as e:

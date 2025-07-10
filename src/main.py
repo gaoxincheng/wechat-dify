@@ -31,7 +31,6 @@ FILTER_SESSIONS = {
     "微信团队",
     "文件传输助手",
 }  # 过滤的会话
-SELF_NICKNAME = "B7"  # 自己在群中的昵称
 
 
 def signal_handler(sig, frame):
@@ -63,7 +62,7 @@ def poll_messages() -> None:
                     WXHandle().http_manager().get_response(block=False, timeout=1)
                 )
                 WXHandle().handle_response(queue_msg)
-
+            # 检查会话变化
             sessions = WXHandle().wx().GetSession()
             for session in sessions:
                 if not session.time:
@@ -82,7 +81,7 @@ def poll_messages() -> None:
                     continue
                 # 新会话消息处理
                 logger.info(
-                    f"检测到会话更新：{session.name} | {session.content} | {session.time} | {session.new_count}"
+                    f"检测到会话更新：{session.name} | {session.time} | {session.new_count}"
                 )
                 WXHandle().add_new_session(session.name)
             # 等待下一次轮询
@@ -138,7 +137,6 @@ if __name__ == "__main__":
     logger.info("请确保微信已登录并处于活动状态...")
     time.sleep(3)  # 等待3秒，给用户时间切换到微信
 
-    # 启动异步事件循环
     try:
         main_run()
     except KeyboardInterrupt:
