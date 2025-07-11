@@ -3,12 +3,6 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Any, Optional
 import requests
-from src.config.global_vars import (
-    GlobalVars,
-    del_conversation_id_lru,
-    get_conversation_id_lru,
-)
-from src.common.utils import remove_at_info, remove_tags_regex
 from src.common.logger_handler import logger
 
 

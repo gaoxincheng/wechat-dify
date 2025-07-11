@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
 # filename: handle.py
 
-import requests
 import datetime
 import asyncio
 import re
 from wxauto import WeChat
 import aiohttp
-import time
 
 from src.config.global_vars import (
     GlobalVars,
@@ -51,7 +49,7 @@ async def async_http_request(conversation_id, from_user_name, question):
                 "conversation_id": f"{get_conversation_id_lru(conversation_id,'')}",
                 "user": from_user_name,
             }
-            logger.info(f"开始请求Dify.....")
+            logger.info("开始请求Dify.....")
             # 此处需用‘json’字段接收数据，否则报400；
             async with session.post(url, json=data) as response:
                 if response.status == 200:

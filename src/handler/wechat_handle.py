@@ -19,9 +19,6 @@ from src.config.global_vars import (
 )
 
 
-MAX_OPEN_SESSIONS = 4  # 最大打开会话数量
-
-
 def on_recv_message(msg, chat: Chat):
     logger.info(f"收到消息 {chat.who}：{msg}")
     if not isinstance(msg, FriendTextMessage):
@@ -69,7 +66,7 @@ class WXHandle:
                         return
         msg = msgs[-1]
         if not isinstance(msg, FriendTextMessage):
-            logger.info(f"会话最近一条消息不是来着好友的消息")
+            logger.info("会话最近一条消息不是来着好友的消息")
             return
         logger.info(f"处理新增会话最新消息： {who} 的消息 ：{msg.content}")
         self.handle_recv_message(msg, chat)
@@ -163,7 +160,7 @@ class WXHandle:
 
     def check_session_count(self):
         cur_listen_count = len(self._wx.listen)
-        if cur_listen_count < MAX_OPEN_SESSIONS:
+        if cur_listen_count < GlobalVars().get_max_open_session_count():
             return
 
         while True:

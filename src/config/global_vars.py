@@ -1,5 +1,4 @@
 from cachetools import LRUCache
-from cachetools import TLRUCache
 
 import threading
 from src.common.logger_handler import logger
@@ -46,6 +45,9 @@ class GlobalVars:
             cls._instance.dify_api_token = "app-iZRWkNMmWaAdoBTehffXRSWp"
             # 群中@昵称
             cls._instance._self_nickname = "高新成"
+            # 会话相关
+            cls._instance._max_open_session_count = 4  # 最大打开会话数量
+
         return cls._instance
 
     def get_dify_api_url(self):
@@ -56,3 +58,11 @@ class GlobalVars:
 
     def get_self_nickname(self):
         return self._self_nickname
+
+    def get_max_open_session_count(self):
+        """
+        获取最大打开的会话数量
+
+        :return: 最大打开的会话数量
+        """
+        return self._max_open_session_count

@@ -36,7 +36,7 @@ def ParseWeChatTime(time_str):
     match = re.match(r"^昨天$", time_str)
     if match:
         yesterday = datetime.now() - timedelta(days=1)
-        return yesterday.strftime("%Y-%m-%d") + f" 00:00:00"
+        return yesterday.strftime("%Y-%m-%d") + " 00:00:00"
 
     match = re.match(r"^星期([一二三四五六日]) (\d{1,2}):(\d{1,2})$", time_str)
     if match:
@@ -54,7 +54,7 @@ def ParseWeChatTime(time_str):
         today_weekday = datetime.now().weekday()
         delta_days = (today_weekday - weekday_num) % 7
         target_day = datetime.now() - timedelta(days=delta_days)
-        return target_day.strftime("%Y-%m-%d") + f" 00:00:00"
+        return target_day.strftime("%Y-%m-%d") + " 00:00:00"
 
     match = re.match(r"^(\d{4})年(\d{1,2})月(\d{1,2})日 (\d{1,2}):(\d{1,2})$", time_str)
     if match:
@@ -66,7 +66,7 @@ def ParseWeChatTime(time_str):
     match = re.match(r"^(\d{1,2})/(\d{1,2})/(\d{1,2})$", time_str)
     if match:
         return (
-            datetime.strptime(time_str, "%y/%m/%d").strftime("%Y-%m-%d") + f" 00:00:00"
+            datetime.strptime(time_str, "%y/%m/%d").strftime("%Y-%m-%d") + " 00:00:00"
         )
 
 

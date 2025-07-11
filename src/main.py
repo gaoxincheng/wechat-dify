@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import signal
+from datetime import datetime
 
 # 获取项目的根路径
 project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -9,19 +10,15 @@ project_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if project_path not in sys.path:
     sys.path.append(project_path)
 
-from datetime import datetime
-from wxauto.msgs import *
-from wxauto.utils import *
 from src.common.logger_handler import logger
-from src.common.utils import ParseWeChatTime
+import src.common.utils as utils
 from src.handler.wechat_handle import WXHandle, on_recv_message
+
 
 # 可配置参数
 CHECK_INTERVAL = 1  # 轮询间隔（秒）
-LISTEN_FRIENDS = []  # 要监听的好友昵称列表
-LISTEN_GROUPS = [
-    # "群消息测试"
-]  # 要监听的群列表
+LISTEN_FRIENDS = ["B7"]  # 要监听的好友昵称列表
+LISTEN_GROUPS = ["群消息测试"]  # 要监听的群列表
 FILTER_SESSIONS = {
     "订阅号",
     "服务号",
@@ -69,7 +66,7 @@ def poll_messages() -> None:
                     continue
                 if session.name in WXHandle().wx().listen:
                     continue
-                time_str = ParseWeChatTime(session.time)
+                time_str = utils.ParseWeChatTime(session.time)
                 if not time_str:
                     continue
                 session_time = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
@@ -115,7 +112,7 @@ def main_run() -> None:
         try:
             WXHandle().wx().AddListenChat(nickname=group, callback=on_recv_message)
             time.sleep(0.5)
-            WXHandle().wx().handle_chat_last_msg(who=group)
+            WXHandle().handle_chat_last_msg(who=group)
             logger.info(f"监听 {group} 的群聊天窗口")
         except Exception as e:
             logger.info(f"打开 {group} 群聊天窗口失败：{str(e)}")
