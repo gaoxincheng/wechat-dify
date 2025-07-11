@@ -54,13 +54,11 @@ def poll_messages() -> None:
     while True:
         try:
             # 处理消息响应
-            # logger.info(
-            #     f"消息响应队列长度： {WXHandle().http_manager().response_queue.qsize()}"
-            # )
+            logger.info(
+                f"消息响应队列长度： {WXHandle().http_manager().response_queue.qsize()}"
+            )
             while not WXHandle().http_manager().response_queue.empty():
-                queue_msg = (
-                    WXHandle().http_manager().get_response(block=False, timeout=1)
-                )
+                queue_msg = WXHandle().http_manager().get_response(block=False)
                 WXHandle().handle_response(queue_msg)
             # 检查会话变化
             sessions = WXHandle().wx().GetSession()
@@ -96,7 +94,7 @@ def main_run() -> None:
     """主函数：初始化并启动轮询"""
     WXHandle().wx().SwitchToChat()
 
-    logger.info(f"微信消息轮询监听已启动")
+    logger.info("微信消息轮询监听已启动")
     logger.info(f"过滤会话：{FILTER_SESSIONS}")
     logger.info(f"目标好友：{LISTEN_FRIENDS}")
     logger.info(f"目标群：{LISTEN_GROUPS}")

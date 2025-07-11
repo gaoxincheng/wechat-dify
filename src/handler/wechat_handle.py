@@ -23,9 +23,10 @@ MAX_OPEN_SESSIONS = 4  # 最大打开会话数量
 
 
 def on_recv_message(msg, chat: Chat):
-    if not isinstance(msg, FriendMessage):
-        return
     logger.info(f"收到消息 {chat.who}：{msg}")
+    if not isinstance(msg, FriendTextMessage):
+        return
+    logger.info(f"可以处理消息 {chat.who}：{msg}")
     WXHandle().handle_recv_message(msg, chat)
 
 
@@ -67,7 +68,7 @@ class WXHandle:
                         )
                         return
         msg = msgs[-1]
-        if not isinstance(msg, FriendMessage):
+        if not isinstance(msg, FriendTextMessage):
             logger.info(f"会话最近一条消息不是来着好友的消息")
             return
         logger.info(f"处理新增会话最新消息： {who} 的消息 ：{msg.content}")

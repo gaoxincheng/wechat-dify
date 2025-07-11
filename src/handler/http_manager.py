@@ -125,6 +125,7 @@ class HTTPRequestManager:
             response = future.result()
             self.response_queue.put(QueueMsg(response, session_name, sender))
         except Exception as e:
+            logger.info(f"Dify请求返回处理异常: {request_id}")
             self.response_queue.put(
                 QueueMsg(
                     HTTPResponse(
