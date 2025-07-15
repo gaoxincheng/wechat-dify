@@ -13,27 +13,13 @@ if project_path not in sys.path:
 from src.common.logger_handler import logger
 import src.common.utils as utils
 from src.handler.wechat_handle import WXHandle, on_recv_message
-
-
-# 可配置参数
-CHECK_INTERVAL = 1  # 轮询间隔（秒）
-LISTEN_FRIENDS = ["B7"]  # 要监听的好友昵称列表
-LISTEN_GROUPS = ["群消息测试"]  # 要监听的群列表
-FILTER_SESSIONS = {
-    "订阅号",
-    "服务号",
-    "服务通知",
-    "小程序客服消息",
-    "微信支付",
-    "微信团队",
-    "文件传输助手",
-}  # 过滤的会话
+from src.config.global_vars import GlobalVars
 
 
 def signal_handler(sig, frame):
     logger.info("\n程序已中断 (Ctrl+C)")
     # 执行清理操作（如关闭文件、释放资源）
-    WXHandle().wx().StopListening()
+    WXHandle().close()
     sys.exit(0)
 
 
@@ -64,6 +50,8 @@ def poll_messages() -> None:
                     continue
                 if not session.name:
                     continue
+                if session.name in GlobalVars.FILTER_SESSIONS:
+                    continue
                 if session.name in WXHandle().wx().listen:
                     continue
                 time_str = utils.ParseWeChatTime(session.time)
@@ -80,7 +68,7 @@ def poll_messages() -> None:
                 )
                 WXHandle().add_new_session(session.name)
             # 等待下一次轮询
-            time.sleep(CHECK_INTERVAL)
+            time.sleep(GlobalVars.CHECK_INTERVAL)
         except Exception as e:
             logger.info(f"轮询异常：{str(e)}")
             time.sleep(5)  # 出错后延长等待时间
@@ -92,12 +80,12 @@ def main_run() -> None:
     WXHandle().wx().SwitchToChat()
 
     logger.info("微信消息轮询监听已启动")
-    logger.info(f"过滤会话：{FILTER_SESSIONS}")
-    logger.info(f"目标好友：{LISTEN_FRIENDS}")
-    logger.info(f"目标群：{LISTEN_GROUPS}")
+    logger.info(f"过滤会话：{GlobalVars.FILTER_SESSIONS}")
+    logger.info(f"目标好友：{GlobalVars.LISTEN_FRIENDS}")
+    logger.info(f"目标群：{GlobalVars.LISTEN_GROUPS}")
 
     # 预先打开一次聊天窗口（可选）
-    for friend in LISTEN_FRIENDS:
+    for friend in GlobalVars.LISTEN_FRIENDS:
         try:
             WXHandle().wx().AddListenChat(nickname=friend, callback=on_recv_message)
             time.sleep(0.5)
@@ -108,7 +96,7 @@ def main_run() -> None:
             # 切到会话页，防止搜索残留输入影响
             WXHandle().wx().SwitchToChat()
 
-    for group in LISTEN_GROUPS:
+    for group in GlobalVars.LISTEN_GROUPS:
         try:
             WXHandle().wx().AddListenChat(nickname=group, callback=on_recv_message)
             time.sleep(0.5)
@@ -135,5 +123,5 @@ if __name__ == "__main__":
     try:
         main_run()
     except KeyboardInterrupt:
-        WXHandle().wx().StopListening()
+        WXHandle().close()
         logger.info("\n程序已停止")

@@ -39,11 +39,28 @@ class WXHandle:
             cls._instance._http_manager = HTTPRequestManager(max_workers=5)
         return cls._instance
 
+    def close(self) -> None:
+        self._wx.StopListening()
+        self._http_manager.shutdown()
+
     def wx(self) -> WeChat:
         return self._wx
 
-    def http_manager(self):
+    def http_manager(self) -> HTTPRequestManager:
         return self._http_manager
+
+    @staticmethod
+    def get_conversation_id(session_name: str, sender: str) -> str:
+        # 发送昵称与窗口一致则认为是单聊
+        if session_name == sender:
+            return sender
+        else:
+            return f"{session_name}.{sender}"
+
+    @staticmethod
+    def is_group(session_name: str, sender: str) -> bool:
+        # 发送昵称与窗口一致则认为是单聊
+        return session_name != sender
 
     def handle_chat_last_msg(self, who: str, check_time=True):
         chat, _ = self._wx.listen[who]
@@ -79,17 +96,18 @@ class WXHandle:
                 return
             data = msg.http_response.content
             answer = ""
+            conversation_id = WXHandle.get_conversation_id(msg.session_name, msg.sender)
             if msg.http_response.status_code == 200:
                 answer = remove_tags_regex(data["answer"], ["think", "details"]).strip()
                 logger.info(
                     f"{msg.session_name}.{msg.sender} ->请求dify_chat成功 : {datetime.now()}"
                 )
-                get_conversation_id_lru(msg.sender, data["conversation_id"])
+                get_conversation_id_lru(conversation_id, data["conversation_id"])
             elif msg.http_response.status_code == 404:
                 logger.info(
                     f"请求失败,请稍后再试，状态码: {msg.http_response.status_code},{msg.http_response.error}"
                 )
-                del_conversation_id_lru(msg.sender)
+                del_conversation_id_lru(conversation_id)
                 answer = f"请求失败,请稍后再试，状态码: {msg.http_response.status_code}，msg: {msg.http_response.error}"
             else:
                 logger.info(
@@ -111,30 +129,23 @@ class WXHandle:
 
     def handle_recv_message(self, msg, chat: Chat):
         self._sessionManager.update_session(chat.who, datetime.now())
+        if WXHandle.is_group(chat.who, msg.sender):
+            if f"@{GlobalVars().get_self_nickname()}" not in msg.content:
+                logger.info(f"非@{GlobalVars().get_self_nickname()} 的群消息不处理")
+                return
         headers = {
             "Authorization": f"Bearer {GlobalVars().get_dify_api_token()}",
             "Content-Type": "application/json",
         }
-        # 发送昵称与窗口一致则认为是单聊
-        if msg.sender == chat.who:
-            data = {
-                "inputs": {},
-                "query": remove_at_info(msg.content),
-                "response_mode": "blocking",
-                "conversation_id": f"{get_conversation_id_lru(chat.who,'')}",
-                "user": chat.who,
-            }
-        else:
-            if f"@{GlobalVars().get_self_nickname()}" not in msg.content:
-                logger.info(f"非@{GlobalVars().get_self_nickname()} 的群消息不处理")
-                return
-            data = {
-                "inputs": {},
-                "query": remove_at_info(msg.content),
-                "response_mode": "blocking",
-                "conversation_id": f"{get_conversation_id_lru(f"{chat.who}.{msg.sender}",'')}",
-                "user": msg.sender,
-            }
+        conversation_id = WXHandle.get_conversation_id(chat.who, msg.sender)
+        data = {
+            "inputs": {},
+            "query": remove_at_info(msg.content),
+            "response_mode": "blocking",
+            "conversation_id": f"{get_conversation_id_lru(conversation_id,'')}",
+            "user": msg.sender,
+        }
+
         request = HTTPRequest(
             "POST",
             f"{GlobalVars().get_dify_api_url()}/chat-messages",

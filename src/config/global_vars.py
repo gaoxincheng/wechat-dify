@@ -37,6 +37,21 @@ def del_conversation_id_lru(key_id):
 class GlobalVars:
     _instance = None
 
+    # 可配置参数
+    CHECK_INTERVAL = 1  # 轮询间隔（秒）
+    LISTEN_FRIENDS = []  # 要监听的好友昵称列表
+    LISTEN_GROUPS = []  # 要监听的群列表
+    # 过滤的会话
+    FILTER_SESSIONS = {
+        "订阅号",
+        "服务号",
+        "服务通知",
+        "小程序客服消息",
+        "微信支付",
+        "微信团队",
+        "文件传输助手",
+    }
+
     def __new__(cls):
         if not cls._instance:
             cls._instance = super().__new__(cls)
